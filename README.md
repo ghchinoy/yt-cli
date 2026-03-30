@@ -34,13 +34,20 @@ go install github.com/ghchinoy/yt-cli@latest
 
 This repository includes an Agent Skill that provides instructions on how to use `yt-cli`.
 
-If you are using [Gemini CLI](https://github.com/google/gemini-cli), you can install the skill directly from this repository:
+If you are using [Gemini CLI](https://geminicli.com/), you can install the skill directly from this repository:
 
 ```bash
 gemini skills install https://github.com/ghchinoy/yt-cli.git --path skills/yt-cli
 ```
 
 Once installed, your agent will understand how to list your videos, look up channel information, and securely upload new content! See the `skills/yt-cli/SKILL.md` file for full instructions.
+
+## Prerequisites
+
+* Google Cloud Project
+* [YouTube Data API v3](https://developers.google.com/youtube/v3/getting-started) enabled (`gcloud enable services youtube.googleapis.com`)
+* YouTube Key and/or OAuth Client ID (preferred)
+* A video to upload (optional)
 
 
 ## Disclaimer
