@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// yt-cli is a dual-mode command-line interface for humans and AI agents to
+// query YouTube channel and video metadata and upload videos.
 package main
 
 import "github.com/ghchinoy/yt-cli/cmd"

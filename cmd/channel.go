@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +25,23 @@ var channelCmd = &cobra.Command{
 	GroupID: "Info",
 	Short:   "Manage and query YouTube channels",
 	Long:    `Group of commands to query information and retrieve video lists for YouTube channels.`,
+	Example: `  yt-cli channel info --mine
+  yt-cli channel videos UC_x5XG1OV2P6uZZ5FSM9Ttw --limit 5 --json`,
 }
 
 func init() {
 	rootCmd.AddCommand(channelCmd)
+}
+
+func resolveChannelTarget(args []string, mine bool) (string, error) {
+	if !mine && len(args) == 0 {
+		return "", errors.New("requires either a channel ID or the --mine flag")
+	}
+	if mine && len(args) > 0 {
+		return "", errors.New("cannot specify both a channel ID and --mine")
+	}
+	if len(args) > 0 {
+		return args[0], nil
+	}
+	return "", nil
 }

@@ -12,22 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package ui provides semantic terminal styling and error formatting for yt-cli.
 package ui
 
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	Accent  = lipgloss.NewStyle().Foreground(lipgloss.Color("39"))  // Blue
-	Command = lipgloss.NewStyle().Foreground(lipgloss.Color("248")) // Light Grey
-	Pass    = lipgloss.NewStyle().Foreground(lipgloss.Color("42"))  // Green
-	Warn    = lipgloss.NewStyle().Foreground(lipgloss.Color("214")) // Orange
-	Fail    = lipgloss.NewStyle().Foreground(lipgloss.Color("196")) // Red
-	Muted   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")) // Dark Grey
-	ID      = lipgloss.NewStyle().Foreground(lipgloss.Color("86"))  // Teal/Mint
+	// Accent highlights navigation landmarks, headers, and group titles.
+	Accent = lipgloss.NewStyle().Foreground(lipgloss.Color("39"))
+	// Command styles scan targets such as command names, flags, and file paths.
+	Command = lipgloss.NewStyle().Foreground(lipgloss.Color("248"))
+	// Pass indicates success states and completed tasks.
+	Pass = lipgloss.NewStyle().Foreground(lipgloss.Color("42"))
+	// Warn indicates transient states, dry-run notices, and actionable hints.
+	Warn = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
+	// Fail indicates errors and rejected states.
+	Fail = lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
+	// Muted de-emphasizes secondary metadata and defaults.
+	Muted = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	// ID highlights unique resource identifiers.
+	ID = lipgloss.NewStyle().Foreground(lipgloss.Color("86"))
 )
 
-// FormatError provides a standard format for hints for agents
+// FormatError formats an error and optional actionable hint for stderr output.
 func FormatError(err error, hint string) string {
+	if err == nil {
+		return ""
+	}
 	out := Fail.Render("Error: ") + err.Error() + "\n"
 	if hint != "" {
 		out += Warn.Render("Hint: ") + Command.Render(hint) + "\n"

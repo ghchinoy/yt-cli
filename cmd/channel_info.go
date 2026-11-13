@@ -15,14 +15,16 @@
 package cmd
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/ghchinoy/yt-cli/auth"
 	"github.com/ghchinoy/yt-cli/ui"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var mineInfo bool
@@ -36,50 +38,53 @@ var channelInfoCmd = &cobra.Command{
   yt-cli channel info UC_x5XG1OV2P6uZZ5FSM9Ttw --json`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if !mineInfo && len(args) == 0 {
-			fmt.Fprintln(os.Stderr, ui.FormatError(fmt.Errorf("requires either a channel ID or the --mine flag"), ""))
-			cmd.Usage()
-			os.Exit(1)
-		}
-
-		channelID := ""
-		if len(args) > 0 {
-			channelID = args[0]
-		}
-
-		srv, err := auth.GetYouTubeService()
+		channelID, err := resolveChannelTarget(args, mineInfo)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, ui.FormatError(err, ""))
+			fmt.Fprintln(os.Stderr, ui.FormatError(err, "Pass a channel ID positional argument or --mine."))
+			_ = cmd.Usage()
 			os.Exit(1)
 		}
 
-		call := srv.Channels.List([]string{"snippet", "statistics"})
-		if mineInfo {
-			call = call.Mine(true)
-		} else {
-			call = call.Id(channelID)
+		ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)
+		defer cancel()
+
+		srv, err := auth.NewYouTubeService(ctx)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, ui.FormatError(err, authSetupHint))
+			os.Exit(1)
 		}
-		
-		resp, err := call.Do()
+
+		call := srv.Channels.List([]string{"snippet", "statistics"}).Id(channelID)
+		if mineInfo {
+			call = srv.Channels.List([]string{"snippet", "statistics"}).Mine(true)
+		}
+
+		resp, err := call.Context(ctx).Do()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, ui.FormatError(err, "Verify the channel ID is correct or you are authenticated."))
 			os.Exit(1)
 		}
 
 		if len(resp.Items) == 0 {
-			fmt.Fprintln(os.Stderr, ui.FormatError(fmt.Errorf("channel not found"), ""))
+			fmt.Fprintln(os.Stderr, ui.FormatError(errors.New("channel not found"), ""))
 			os.Exit(1)
 		}
 
 		ch := resp.Items[0]
 
 		if viper.GetBool("json") {
-			b, _ := json.MarshalIndent(ch, "", "  ")
-			fmt.Println(string(b))
+			if err := printJSON(cmd.OutOrStdout(), ch); err != nil {
+				fmt.Fprintln(os.Stderr, ui.FormatError(err, ""))
+				os.Exit(1)
+			}
 			return
 		}
 
-		fmt.Printf("%s %s\n", ui.Accent.Render("Channel Title:"), ch.Snippet.Title)
+		title := ""
+		if ch.Snippet != nil {
+			title = ch.Snippet.Title
+		}
+		fmt.Printf("%s %s\n", ui.Accent.Render("Channel Title:"), title)
 		fmt.Printf("%s %s\n", ui.Accent.Render("Channel ID:"), ui.ID.Render(ch.Id))
 		if ch.Statistics != nil {
 			fmt.Printf("%s %d\n", ui.Muted.Render("Subscribers:"), ch.Statistics.SubscriberCount)

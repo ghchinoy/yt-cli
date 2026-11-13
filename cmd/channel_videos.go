@@ -15,16 +15,19 @@
 package cmd
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"unicode/utf8"
 
+	"github.com/ghchinoy/yt-cli/auth"
+	"github.com/ghchinoy/yt-cli/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/api/youtube/v3"
-	"github.com/ghchinoy/yt-cli/auth"
-	"github.com/ghchinoy/yt-cli/ui"
 )
 
 var (
@@ -38,88 +41,81 @@ var channelVideosCmd = &cobra.Command{
 	Use:   "videos [channel-id]",
 	Short: "List videos for a channel",
 	Long:  `Retrieves a list of videos for a specified YouTube channel. You can limit the results, get detailed views, and filter videos by privacy status (if authenticated as the channel owner). Use --mine to get videos for your own channel.`,
-	Example: `  yt-cli channel videos UC...
+	Example: `  yt-cli channel videos UC_x5XG1OV2P6uZZ5FSM9Ttw
   yt-cli channel videos --mine --limit 5
   yt-cli channel videos --mine --detailed --filter public,unlisted
-  yt-cli channel videos UC... --json`,
+  yt-cli channel videos UC_x5XG1OV2P6uZZ5FSM9Ttw --json`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if !mineVideos && len(args) == 0 {
-			fmt.Fprintln(os.Stderr, ui.FormatError(fmt.Errorf("requires either a channel ID or the --mine flag"), ""))
-			cmd.Usage()
-			os.Exit(1)
-		}
-
-		channelID := ""
-		if len(args) > 0 {
-			channelID = args[0]
-		}
-
-		srv, err := auth.GetYouTubeService()
+		channelID, err := resolveChannelTarget(args, mineVideos)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, ui.FormatError(err, ""))
+			fmt.Fprintln(os.Stderr, ui.FormatError(err, "Pass a channel ID positional argument or --mine."))
+			_ = cmd.Usage()
 			os.Exit(1)
 		}
 
-		// First, get the "uploads" playlist ID for the channel
-		chCall := srv.Channels.List([]string{"contentDetails"})
-		if mineVideos {
-			chCall = chCall.Mine(true)
-		} else {
-			chCall = chCall.Id(channelID)
+		ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)
+		defer cancel()
+
+		srv, err := auth.NewYouTubeService(ctx)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, ui.FormatError(err, authSetupHint))
+			os.Exit(1)
 		}
-		chResp, err := chCall.Do()
+
+		chCall := srv.Channels.List([]string{"contentDetails"}).Id(channelID)
+		if mineVideos {
+			chCall = srv.Channels.List([]string{"contentDetails"}).Mine(true)
+		}
+		chResp, err := chCall.Context(ctx).Do()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, ui.FormatError(err, "Verify the channel ID is correct or you are authenticated."))
 			os.Exit(1)
 		}
 		if len(chResp.Items) == 0 {
-			fmt.Fprintln(os.Stderr, ui.FormatError(fmt.Errorf("channel not found"), ""))
+			fmt.Fprintln(os.Stderr, ui.FormatError(errors.New("channel not found"), ""))
 			os.Exit(1)
 		}
 
-		uploadsPlaylistID := chResp.Items[0].ContentDetails.RelatedPlaylists.Uploads
+		ch := chResp.Items[0]
+		if ch.ContentDetails == nil || ch.ContentDetails.RelatedPlaylists == nil || ch.ContentDetails.RelatedPlaylists.Uploads == "" {
+			fmt.Fprintln(os.Stderr, ui.FormatError(errors.New("uploads playlist not found for channel"), ""))
+			os.Exit(1)
+		}
+		uploadsPlaylistID := ch.ContentDetails.RelatedPlaylists.Uploads
 
-		// Now fetch the playlist items
 		playlistCall := srv.PlaylistItems.List([]string{"snippet", "status"}).PlaylistId(uploadsPlaylistID).MaxResults(limit)
-		playlistResp, err := playlistCall.Do()
+		playlistResp, err := playlistCall.Context(ctx).Do()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, ui.FormatError(err, "Could not retrieve playlist items. Note: filtering private videos requires owner authentication."))
 			os.Exit(1)
 		}
 
-		// Filter by privacy if requested
-		var items = playlistResp.Items
-		if filter != "" {
-			allowedStatuses := strings.Split(filter, ",")
-			statusMap := make(map[string]bool)
-			for _, s := range allowedStatuses {
-				statusMap[strings.TrimSpace(s)] = true
-			}
-
-			var filtered []*youtube.PlaylistItem
-			for _, item := range items {
-				if item.Status != nil && statusMap[item.Status.PrivacyStatus] {
-					filtered = append(filtered, item)
-				}
-			}
-			items = filtered
-		}
+		items := filterPlaylistItems(playlistResp.Items, filter)
 
 		if viper.GetBool("json") {
-			b, _ := json.MarshalIndent(items, "", "  ")
-			fmt.Println(string(b))
+			if err := printJSON(cmd.OutOrStdout(), items); err != nil {
+				fmt.Fprintln(os.Stderr, ui.FormatError(err, ""))
+				os.Exit(1)
+			}
 			return
 		}
 
 		displayID := channelID
 		if mineVideos {
-			displayID = chResp.Items[0].Id
+			displayID = ch.Id
 		}
 
 		fmt.Printf("%s Videos for %s (Limit: %d)\n", ui.Accent.Render("Latest"), ui.ID.Render(displayID), limit)
 		for _, item := range items {
-			fmt.Printf("- %s [%s]\n", ui.Command.Render(item.Snippet.Title), ui.ID.Render(item.Snippet.ResourceId.VideoId))
+			if item.Snippet == nil {
+				continue
+			}
+			videoID := ""
+			if item.Snippet.ResourceId != nil {
+				videoID = item.Snippet.ResourceId.VideoId
+			}
+			fmt.Printf("- %s [%s]\n", ui.Command.Render(item.Snippet.Title), ui.ID.Render(videoID))
 			if detailed {
 				fmt.Printf("  %s %s\n", ui.Muted.Render("Published At:"), item.Snippet.PublishedAt)
 				privacy := "unknown"
@@ -133,11 +129,32 @@ var channelVideosCmd = &cobra.Command{
 	},
 }
 
-func truncate(s string, l int) string {
-	if len(s) > l {
-		return s[:l] + "..."
+func filterPlaylistItems(items []*youtube.PlaylistItem, filterCSV string) []*youtube.PlaylistItem {
+	if strings.TrimSpace(filterCSV) == "" {
+		return items
 	}
-	return s
+	statusMap := make(map[string]bool)
+	for _, s := range strings.Split(filterCSV, ",") {
+		if trimmed := strings.TrimSpace(s); trimmed != "" {
+			statusMap[trimmed] = true
+		}
+	}
+
+	var filtered []*youtube.PlaylistItem
+	for _, item := range items {
+		if item != nil && item.Status != nil && statusMap[item.Status.PrivacyStatus] {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
+}
+
+func truncate(s string, maxRunes int) string {
+	if maxRunes <= 0 || utf8.RuneCountInString(s) <= maxRunes {
+		return s
+	}
+	runes := []rune(s)
+	return string(runes[:maxRunes]) + "..."
 }
 
 func init() {

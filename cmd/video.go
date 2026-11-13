@@ -23,6 +23,8 @@ var videoCmd = &cobra.Command{
 	GroupID: "Info",
 	Short:   "Manage and query YouTube videos",
 	Long:    `Group of commands to query information, look up channel relationships, and upload YouTube videos.`,
+	Example: `  yt-cli video channel-info dQw4w9WgXcQ --json
+  yt-cli video upload ./my-video.mp4 --title "My Title" --dry-run`,
 }
 
 func init() {

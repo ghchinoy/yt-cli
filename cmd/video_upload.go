@@ -15,15 +15,17 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/ghchinoy/yt-cli/auth"
+	"github.com/ghchinoy/yt-cli/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/api/youtube/v3"
-	"github.com/ghchinoy/yt-cli/auth"
-	"github.com/ghchinoy/yt-cli/ui"
 )
 
 var (
@@ -43,23 +45,10 @@ var videoUploadCmd = &cobra.Command{
 		filename := args[0]
 
 		if dryRun {
-			if viper.GetBool("json") {
-				out := map[string]interface{}{
-					"status": "dry-run",
-					"file":   filename,
-					"snippet": map[string]string{
-						"title":       uploadTitle,
-						"description": uploadDescription,
-					},
-				}
-				b, _ := json.MarshalIndent(out, "", "  ")
-				fmt.Println(string(b))
-				return
+			if err := formatDryRunUpload(cmd.OutOrStdout(), filename, uploadTitle, uploadDescription, viper.GetBool("json")); err != nil {
+				fmt.Fprintln(os.Stderr, ui.FormatError(err, ""))
+				os.Exit(1)
 			}
-			fmt.Printf("%s\n", ui.Warn.Render("DRY RUN MODE ENABLED"))
-			fmt.Printf("Would upload file: %s\n", ui.Command.Render(filename))
-			fmt.Printf("Title: %s\n", uploadTitle)
-			fmt.Printf("Description: %s\n", uploadDescription)
 			return
 		}
 
@@ -70,9 +59,12 @@ var videoUploadCmd = &cobra.Command{
 		}
 		defer file.Close()
 
-		srv, err := auth.GetYouTubeService()
+		ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)
+		defer cancel()
+
+		srv, err := auth.NewYouTubeService(ctx)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, ui.FormatError(err, ""))
+			fmt.Fprintln(os.Stderr, ui.FormatError(err, authSetupHint))
 			os.Exit(1)
 		}
 
@@ -80,21 +72,23 @@ var videoUploadCmd = &cobra.Command{
 			Snippet: &youtube.VideoSnippet{
 				Title:       uploadTitle,
 				Description: uploadDescription,
-				CategoryId:  "22", // Default to People & Blogs
+				CategoryId:  "22", // Default to People & Blogs.
 			},
-			Status: &youtube.VideoStatus{PrivacyStatus: "private"}, // Default to private for safety
+			Status: &youtube.VideoStatus{PrivacyStatus: "private"}, // Default to private for safety.
 		}
 
 		call := srv.Videos.Insert([]string{"snippet", "status"}, upload)
-		resp, err := call.Media(file).Do()
+		resp, err := call.Context(ctx).Media(file).Do()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, ui.FormatError(err, "Check your internet connection and API quota."))
 			os.Exit(1)
 		}
 
 		if viper.GetBool("json") {
-			b, _ := json.MarshalIndent(resp, "", "  ")
-			fmt.Println(string(b))
+			if err := printJSON(cmd.OutOrStdout(), resp); err != nil {
+				fmt.Fprintln(os.Stderr, ui.FormatError(err, ""))
+				os.Exit(1)
+			}
 			return
 		}
 
@@ -103,10 +97,29 @@ var videoUploadCmd = &cobra.Command{
 	},
 }
 
+func formatDryRunUpload(w io.Writer, filename, title, description string, asJSON bool) error {
+	if asJSON {
+		out := map[string]any{
+			"status": "dry-run",
+			"file":   filename,
+			"snippet": map[string]string{
+				"title":       title,
+				"description": description,
+			},
+		}
+		return printJSON(w, out)
+	}
+	fmt.Fprintf(w, "%s\n", ui.Warn.Render("DRY RUN MODE ENABLED"))
+	fmt.Fprintf(w, "Would upload file: %s\n", ui.Command.Render(filename))
+	fmt.Fprintf(w, "Title: %s\n", title)
+	fmt.Fprintf(w, "Description: %s\n", description)
+	return nil
+}
+
 func init() {
 	videoCmd.AddCommand(videoUploadCmd)
 	videoUploadCmd.Flags().StringVarP(&uploadTitle, "title", "t", "", "Title of the video (required)")
-	videoUploadCmd.MarkFlagRequired("title")
+	cobra.CheckErr(videoUploadCmd.MarkFlagRequired("title"))
 	videoUploadCmd.Flags().StringVarP(&uploadDescription, "description", "d", "", "Description of the video")
 	videoUploadCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Validate parameters without actually uploading")
 }
