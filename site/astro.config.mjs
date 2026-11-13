@@ -1,9 +1,10 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config';
 
-// Static landing site for yt-cli, designed for zero runtime external requests.
+// Static landing site for yt-cli, deployed to GitHub Pages at https://ghchinoy.github.io/yt-cli/.
 export default defineConfig({
-  site: 'https://ghchinoy.github.io/yt-cli',
+  site: 'https://ghchinoy.github.io',
+  base: '/yt-cli',
   output: 'static',
   fonts: [
     {
