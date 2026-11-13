@@ -12,7 +12,7 @@ metadata:
 
 ## Prerequisites & Authentication
 
-1. Ensure `yt-cli` is installed (`go install github.com/ghchinoy/yt-cli@latest`).
+1. Ensure `yt-cli` is available in your `PATH` or current working directory (`go install github.com/ghchinoy/yt-cli@latest`, or run the bundled `scripts/install.sh` to download and verify the latest prebuilt release binary).
 2. Credentials are resolved in order:
    - OAuth 2.0 Desktop client secret at `~/.config/yt-cli/client_secret.json` with cached token at `~/.config/yt-cli/token.json`.
    - Environment variables `YT_CLIENT_ID` and `YT_CLIENT_SECRET`.

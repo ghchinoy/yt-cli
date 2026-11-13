@@ -2,6 +2,8 @@
 
 A dual-mode command-line tool for humans and AI coding agents to inspect YouTube channels, list and filter channel uploads, resolve video-to-channel ownership, and upload videos safely via the YouTube Data API v3.
 
+[![Go Version](https://img.shields.io/github/go-mod/go-version/ghchinoy/yt-cli)](go.mod)
+[![Latest Release](https://img.shields.io/github/v/release/ghchinoy/yt-cli)](https://github.com/ghchinoy/yt-cli/releases)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ghchinoy/yt-cli.svg)](https://pkg.go.dev/github.com/ghchinoy/yt-cli)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
@@ -17,6 +19,16 @@ A dual-mode command-line tool for humans and AI coding agents to inspect YouTube
 - [License](#license)
 
 ## Installation
+
+### Prebuilt Binaries (macOS & Linux)
+
+Download and verify the latest SHA-256-checked release binary into your current directory using the bundled installer script ([`skills/yt-cli/scripts/install.sh`](skills/yt-cli/scripts/install.sh)):
+
+```bash
+curl -sL https://raw.githubusercontent.com/ghchinoy/yt-cli/main/skills/yt-cli/scripts/install.sh | bash
+```
+
+### Go Install
 
 Install the binary directly with Go (`1.26+`):
 
@@ -123,14 +135,21 @@ ASTRO_TELEMETRY_DISABLED=1 npm run build
 
 ## Publishing
 
-CLI releases are distributed via Go module tags (`go install github.com/ghchinoy/yt-cli@vX.Y.Z`):
+Releases are automated via [GoReleaser](https://goreleaser.com/) and GitHub Actions ([`.github/workflows/release.yaml`](.github/workflows/release.yaml)). Pushing a semantic version tag builds static cross-platform archives (`Darwin`, `Linux`, and `Windows` on `x86_64` and `arm64`), injects the release version into `yt-cli --version`, and publishes SHA-256 checksums to GitHub Releases:
 
 ```bash
-git tag -s v0.2.0 -m "Release v0.2.0"
-git push origin v0.2.0
+git checkout main && git pull
+git tag -s v0.1.0 -m "Release v0.1.0"
+git push origin v0.1.0
 ```
 
-The static site in `./site` builds to `./site/dist` via `ASTRO_TELEMETRY_DISABLED=1 npm run build` for static hosting on GitHub Pages.
+To test a release build locally without publishing:
+
+```bash
+goreleaser release --snapshot --clean
+```
+
+See [`docs/RELEASING.md`](docs/RELEASING.md) for the full release checklist. The static site in `./site` is deployed automatically to GitHub Pages via [`.github/workflows/deploy-site.yml`](.github/workflows/deploy-site.yml).
 
 ## Contributing
 

@@ -12,6 +12,11 @@ const promptPath = {
 
 const cliPaths = [
   {
+    links: [{ label: 'Prebuilt Binary (macOS & Linux)', href: `${repo}/releases` }],
+    text: 'curl -sL https://raw.githubusercontent.com/ghchinoy/yt-cli/main/skills/yt-cli/scripts/install.sh | bash',
+    copyLabel: 'Copy prebuilt binary installer command',
+  },
+  {
     links: [{ label: 'Go CLI', href: 'https://pkg.go.dev/github.com/ghchinoy/yt-cli' }],
     text: 'go install github.com/ghchinoy/yt-cli@latest',
     copyLabel: 'Copy Go install command',

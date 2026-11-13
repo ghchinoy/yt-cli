@@ -31,14 +31,18 @@ import (
 const authSetupHint = "Place your downloaded OAuth client_secret.json in ~/.config/yt-cli/client_secret.json or set YT_CLIENT_ID and YT_CLIENT_SECRET."
 
 var (
+	// Version is the current version of the application, injected at build time via -ldflags.
+	Version = "dev"
+
 	cfgFile string
 	jsonOut bool
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "yt-cli",
-	Short: "A CLI for interacting with YouTube API",
-	Long:  `A Dual-Mode CLI for humans and AI agents to interact with YouTube API. Supports headless authentication and deterministic output.`,
+	Use:     "yt-cli",
+	Version: Version,
+	Short:   "A CLI for interacting with YouTube API",
+	Long:    `A Dual-Mode CLI for humans and AI agents to interact with YouTube API. Supports headless authentication and deterministic output.`,
 	Example: `  yt-cli channel info --mine
   yt-cli channel videos --mine --limit 5 --json
   yt-cli video channel-info dQw4w9WgXcQ --json
@@ -47,6 +51,7 @@ var rootCmd = &cobra.Command{
 
 // Execute runs the root yt-cli command and exits with a non-zero code on failure.
 func Execute() {
+	rootCmd.Version = Version
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

@@ -1,5 +1,6 @@
-# yt-cli binary
+# yt-cli binary & GoReleaser output
 /yt-cli
+/dist/
 .DS_Store
 
 # Astro site build & dependencies

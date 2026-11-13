@@ -263,4 +263,20 @@ func TestCommandRegistrationAndRequiredFlags(t *testing.T) {
 			t.Errorf("cmd.ValidateRequiredFlags() on %q = nil, want error for missing --title", cmd.CommandPath())
 		}
 	})
+
+	t.Run("version_flag_outputs_version", func(t *testing.T) {
+		var buf bytes.Buffer
+		rootCmd.SetOut(&buf)
+		rootCmd.SetErr(&buf)
+		rootCmd.SetArgs([]string{"--version"})
+		t.Cleanup(func() {
+			rootCmd.SetArgs(nil)
+		})
+		if err := rootCmd.Execute(); err != nil {
+			t.Fatalf("rootCmd.Execute() with --version returned unexpected error: %v", err)
+		}
+		if got := buf.String(); !strings.Contains(got, Version) {
+			t.Errorf("rootCmd --version output = %q, want substring %q", got, Version)
+		}
+	})
 }
