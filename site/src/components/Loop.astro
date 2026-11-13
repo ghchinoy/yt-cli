@@ -1,0 +1,148 @@
+---
+import CommandIcon from './CommandIcon.astro';
+
+const steps = [
+  {
+    name: 'Authenticate',
+    icon: 'auth',
+    command: '~/.config/yt-cli/client_secret.json',
+    body: 'Place your Desktop OAuth client_secret.json in ~/.config/yt-cli/ or export YT_CLIENT_ID and YT_CLIENT_SECRET for headless workflows.',
+  },
+  {
+    name: 'Query & Scope',
+    icon: 'videos',
+    command: 'yt-cli channel videos --mine --limit 5 --json',
+    body: 'Retrieve channel statistics, filter uploads by privacy status (public, unlisted, private), and emit structured JSON.',
+  },
+  {
+    name: 'Dry-Run Validate',
+    icon: 'upload',
+    command: 'yt-cli video upload ./demo.mp4 --title "Demo" --dry-run',
+    body: 'Verify file paths and snippet metadata locally before performing any mutative YouTube API upload.',
+  },
+] as const;
+---
+
+<section class="section loop">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="headline">Go from OAuth setup to safe automation.</h2>
+    </div>
+    <ol class="steps">
+      {
+        steps.map((step) => (
+          <li class="step">
+            <span class="marker"><CommandIcon icon={step.icon} /></span>
+            <h3 class="title">{step.name}</h3>
+            <code class="cmd">{step.command}</code>
+            <p class="muted">{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="handoff muted">
+      Once your dry-run payload checks out, drop <code>--dry-run</code> to upload privately.
+    </p>
+    <div class="step drift">
+      <span class="marker"><CommandIcon icon="skill" /></span>
+      <div class="drift-head">
+        <h3 class="title">Private by default</h3>
+        <code class="cmd">yt-cli video upload ./demo.mp4 --title "Demo" --json</code>
+      </div>
+      <p class="muted">
+        Live uploads default to <code>private</code> visibility so you or your human operator can
+        review the video in YouTube Studio before publishing.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .loop {
+    background: var(--md-sys-color-surface-container-low);
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 48px;
+  }
+
+  .step .muted {
+    text-wrap: balance;
+  }
+
+  .step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-block-start: 44px;
+    padding-inline-end: 24px;
+    border-block-start: 1px solid var(--md-sys-color-outline-variant);
+  }
+
+  .steps .step:last-child {
+    padding-inline-end: 0;
+  }
+
+  .marker {
+    position: absolute;
+    inset-block-start: -20px;
+    inset-inline-start: 0;
+    outline: 6px solid var(--md-sys-color-surface-container-low);
+    display: flex;
+    inline-size: 40px;
+    block-size: 40px;
+    border-radius: 50%;
+  }
+
+  .handoff {
+    margin-block: 32px 52px;
+  }
+
+  .cmd {
+    font-size: 0.875rem;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .drift {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    column-gap: 0;
+    align-items: start;
+    padding-inline-end: 0;
+  }
+
+  .drift-head {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-inline-end: 24px;
+  }
+
+  .drift .muted {
+    max-inline-size: 60ch;
+    padding-block-start: 2px;
+  }
+
+  @media (width < 760px) {
+    .steps {
+      grid-template-columns: 1fr;
+      row-gap: 52px;
+    }
+
+    .step {
+      padding-block-start: 40px;
+      padding-inline-end: 0;
+    }
+
+    .drift {
+      grid-template-columns: 1fr;
+      row-gap: 10px;
+    }
+  }
+</style>

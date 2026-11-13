@@ -1,0 +1,75 @@
+---
+interface Props {
+  icon: 'auth' | 'channel' | 'videos' | 'resolve' | 'upload' | 'skill';
+}
+
+const { icon } = Astro.props;
+---
+
+<span class="skill-icon" aria-hidden="true">
+  {
+    icon === 'auth' && (
+      <svg viewBox="0 -960 960 960">
+        <path d="M280-400q-33 0-56.5-23.5T200-480q0-33 23.5-56.5T280-560q33 0 56.5 23.5T360-480q0 33-23.5 56.5T280-400Zm0 160q-100 0-170-70T40-480q0-100 70-170t170-70q67 0 121.5 33t86.5 87h352l120 120-180 180-80-60-80 60-85-60h-47q-32 54-86.5 87T280-240Z" />
+      </svg>
+    )
+  }
+  {
+    icon === 'channel' && (
+      <svg viewBox="0 -960 960 960">
+        <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z" />
+      </svg>
+    )
+  }
+  {
+    icon === 'videos' && (
+      <svg viewBox="0 -960 960 960">
+        <path d="m380-300 280-180-280-180v360ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Z" />
+      </svg>
+    )
+  }
+  {
+    icon === 'resolve' && (
+      <svg viewBox="0 -960 960 960">
+        <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
+      </svg>
+    )
+  }
+  {
+    icon === 'upload' && (
+      <svg viewBox="0 -960 960 960">
+        <path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z" />
+      </svg>
+    )
+  }
+  {
+    icon === 'skill' && (
+      <svg viewBox="0 -960 960 960">
+        <path d="M320-240 80-480l240-240 57 57-184 184 183 183-56 56Zm320 0-57-57 184-184-183-183 56-56 240 240-240 240Z" />
+      </svg>
+    )
+  }
+</span>
+
+<style>
+  .skill-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    inline-size: 40px;
+    block-size: 40px;
+    border-radius: 50%;
+    background: light-dark(
+      var(--md-sys-color-surface-container),
+      var(--md-sys-color-surface-container-low)
+    );
+    color: var(--yt-color-human);
+  }
+
+  svg {
+    display: block;
+    inline-size: 22px;
+    block-size: 22px;
+    fill: currentColor;
+  }
+</style>

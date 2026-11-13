@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="1.5 1.5 21 21" width="32" height="32">
+  <style>
+    :root {
+      --h: var(--yt-color-human, light-dark(#1b6ef3, #7cacf8));
+      --a: var(--yt-color-agent, light-dark(#00897b, #4db6ac));
+      color-scheme: light dark;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #h { fill: var(--h); stroke: var(--h); }
+    #a { fill: var(--a); stroke: var(--a); }
+    .d { stroke: none; }
+    .t { fill: none; }
+  </style>
+  <g id="h">
+    <path class="d" d="M5.20,7.20 L10.80,10.80 A1.40,1.40 0 0 1 10.80,13.20 L5.20,16.80 A1.20,1.20 0 0 1 3.40,15.76 L3.40,8.24 A1.20,1.20 0 0 1 5.20,7.20 Z"/>
+  </g>
+  <g id="a">
+    <path class="t" d="M14.20,7.40 C15.80,7.40 16.20,8.40 16.20,9.80 C16.20,11.00 17.00,11.60 18.20,12.00 C17.00,12.40 16.20,13.00 16.20,14.20 C16.20,15.60 15.80,16.60 14.20,16.60"/>
+    <circle class="d" cx="20.00" cy="12.00" r="1.35"/>
+  </g>
+</svg>

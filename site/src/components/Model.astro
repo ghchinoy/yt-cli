@@ -1,0 +1,82 @@
+---
+import Mark from './Mark.astro';
+---
+
+<section class="section" id="model">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="headline">One binary. Two first-class audiences.</h2>
+      <p class="lead">
+        Built around the Dual-Experience (DX &amp; AX) CLI architecture: human operators get
+        high-signal Lipgloss styling and grouped help, while autonomous agents get strict JSON
+        streams, scoped queries, and actionable recovery hints on <code>stderr</code>.
+      </p>
+    </div>
+
+    <div class="pair">
+      <article class="role">
+        <Mark variant="human" class="glyph" />
+        <h3 class="title">Human DX</h3>
+        <p class="role-sub">Semantic terminal UI</p>
+        <p class="muted">
+          Color-coded headers, IDs, warnings, and command groups make interactive exploration fast.
+          Automatically degrades when <code>NO_COLOR</code> or <code>YT_CLI_NO_TUI</code> is set.
+        </p>
+      </article>
+      <article class="role">
+        <Mark variant="agent" class="glyph" />
+        <h3 class="title">Agent AX</h3>
+        <p class="role-sub">Deterministic JSON &amp; safety</p>
+        <p class="muted">
+          Every subcommand accepts <code>--json</code> for unpolluted <code>stdout</code> payloads,
+          truncates or scopes list queries to protect context windows, and supports{' '}
+          <code>--dry-run</code> validation before mutating state.
+        </p>
+      </article>
+    </div>
+
+    <p class="approval muted">
+      Errors and diagnostic hints always route to <code>stderr</code> so JSON parsers never break.
+    </p>
+  </div>
+</section>
+
+<style>
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px clamp(32px, 6vw, 96px);
+  }
+
+  @media (max-width: 640px) {
+    .pair {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .role {
+    max-inline-size: 46ch;
+  }
+
+  .role .muted {
+    text-wrap: balance;
+  }
+
+  .pair :global(.glyph) {
+    inline-size: 56px;
+    block-size: 56px;
+    margin-block-end: 20px;
+  }
+
+  .role-sub {
+    font: var(--md-sys-typescale-title-lg);
+    letter-spacing: var(--md-sys-typescale-title-lg-tracking);
+    color: var(--md-sys-color-on-surface-variant);
+    margin-block: 2px 14px;
+  }
+
+  .approval {
+    margin-block-start: 32px;
+    max-inline-size: 70ch;
+  }
+</style>

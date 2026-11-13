@@ -1,0 +1,25 @@
+{
+  "name": "yt-cli-site",
+  "private": true,
+  "type": "module",
+  "description": "Landing and documentation site for yt-cli, an agent-aware YouTube Data API v3 CLI and Agent Skill.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "test": "node --test",
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
+    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check"
+  },
+  "dependencies": {
+    "@material/web": "2.5.0",
+    "astro": "^7.4.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.3"
+  }
+}

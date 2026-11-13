@@ -1,0 +1,142 @@
+---
+import CommandIcon from './CommandIcon.astro';
+
+const repo = 'https://github.com/ghchinoy/yt-cli';
+
+const commands = [
+  {
+    name: 'Channel Info',
+    command: 'yt-cli channel info [channel-id] [--mine] [--json]',
+    icon: 'channel',
+    href: `${repo}/blob/main/cmd/channel_info.go`,
+    body: 'Retrieve channel title, ID, subscriber count, and total views for a channel ID or the authenticated user.',
+  },
+  {
+    name: 'Channel Videos',
+    command: 'yt-cli channel videos [channel-id] [--mine] [--limit] [--filter]',
+    icon: 'videos',
+    href: `${repo}/blob/main/cmd/channel_videos.go`,
+    body: 'List uploads from a channel playlist with --limit, --detailed metadata, and privacy status filtering.',
+  },
+  {
+    name: 'Video Channel Info',
+    command: 'yt-cli video channel-info <video-id> [--json]',
+    icon: 'resolve',
+    href: `${repo}/blob/main/cmd/video_channel_info.go`,
+    body: 'Resolve the owning channel ID and channel title for any YouTube video ID (alias: video info).',
+  },
+  {
+    name: 'Video Upload',
+    command: 'yt-cli video upload <filepath> --title <title> [--dry-run]',
+    icon: 'upload',
+    href: `${repo}/blob/main/cmd/video_upload.go`,
+    body: 'Upload an .mp4 video with private-by-default visibility and --dry-run parameter validation.',
+  },
+  {
+    name: 'Agent Skill',
+    command: 'skills/yt-cli/SKILL.md',
+    icon: 'skill',
+    href: `${repo}/blob/main/skills/yt-cli/SKILL.md`,
+    body: 'Bundled agentskills.io specification teaching coding agents how to invoke yt-cli safely.',
+  },
+  {
+    name: 'OAuth & XDG Config',
+    command: '~/.config/yt-cli/client_secret.json',
+    icon: 'auth',
+    href: `${repo}/blob/main/auth/auth.go`,
+    body: 'XDG-compliant credential and token caching with YT_CLIENT_ID and YT_CLIENT_SECRET environment fallback.',
+  },
+] as const;
+---
+
+<section class="section skills" id="commands">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="headline">Commands &amp; Agent Skill</h2>
+    </div>
+    <ul class="list" aria-label="Commands and Agent Skill">
+      {
+        commands.map((item) => (
+          <li>
+            <a
+              class="ripple focus-ring-outer list-item"
+              href={item.href}
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="list-item-leading">
+                <CommandIcon icon={item.icon} />
+              </span>
+              <span class="list-item-content">
+                <span>{item.name}</span>
+                <code class="cmd">{item.command}</code>
+                <span class="list-item-supporting-text">{item.body}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .skills .list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    gap: 16px 32px;
+    border-radius: 0;
+  }
+
+  .skills .list-item {
+    text-decoration: none;
+    --container-shape: var(--md-sys-shape-corner-md);
+    --label-text: var(--md-sys-typescale-title-lg);
+    --top-space: 14px;
+    --bottom-space: 16px;
+    --leading-space: 8px;
+    --trailing-space: 8px;
+    --between-space: 16px;
+    align-items: flex-start;
+    block-size: 100%;
+    border-radius: var(--container-shape);
+  }
+
+  .skills .list-item-leading {
+    display: flex;
+    align-items: center;
+    flex: none;
+    inline-size: 40px;
+    min-height: 0;
+  }
+
+  .skills .list-item-content {
+    min-inline-size: 0;
+  }
+
+  .skills .list-item-supporting-text {
+    max-inline-size: 42ch;
+    margin-block-start: 8px;
+    text-wrap: pretty;
+  }
+
+  .cmd {
+    display: block;
+    margin-block-start: 6px;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  @media (max-width: 760px) {
+    .skills .list {
+      grid-auto-flow: row;
+      grid-template-columns: 1fr;
+      grid-template-rows: none;
+      row-gap: 4px;
+    }
+  }
+</style>

@@ -1,0 +1,56 @@
+---
+interface Props {
+  variant?: 'split' | 'human' | 'agent';
+  size?: number | string;
+  width?: number | string;
+  height?: number | string;
+  class?: string;
+  'aria-hidden'?: boolean | 'true' | 'false';
+}
+
+const {
+  variant = 'split',
+  size,
+  width = size ?? (variant === 'split' ? 28 : 56),
+  height = size ?? (variant === 'split' ? 28 : 56),
+  class: className,
+  'aria-hidden': ariaHidden = true,
+} = Astro.props;
+
+const viewBox =
+  variant === 'human'
+    ? '1.60 6.8 10.4 10.4'
+    : variant === 'agent'
+      ? '12.5 6.8 10.4 10.4'
+      : '1.5 1.5 21.0 21.0';
+---
+
+<svg
+  viewBox={viewBox}
+  width={width}
+  height={height}
+  class={className}
+  aria-hidden={ariaHidden ? 'true' : undefined}
+>
+  {(variant === 'split' || variant === 'human') && (
+    <g class="human-mark">
+      <path
+        d="M5.20,7.20 L10.80,10.80 A1.40,1.40 0 0 1 10.80,13.20 L5.20,16.80 A1.20,1.20 0 0 1 3.40,15.76 L3.40,8.24 A1.20,1.20 0 0 1 5.20,7.20 Z"
+        fill="var(--yt-color-human)"
+      />
+    </g>
+  )}
+  {(variant === 'split' || variant === 'agent') && (
+    <g class="agent-mark">
+      <path
+        d="M14.20,7.40 C15.80,7.40 16.20,8.40 16.20,9.80 C16.20,11.00 17.00,11.60 18.20,12.00 C17.00,12.40 16.20,13.00 16.20,14.20 C16.20,15.60 15.80,16.60 14.20,16.60"
+        fill="none"
+        stroke="var(--yt-color-agent)"
+        stroke-width="2.20"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <circle cx="20.00" cy="12.00" r="1.35" fill="var(--yt-color-agent)" />
+    </g>
+  )}
+</svg>
